@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/brvm", "destination": "/api/brvm.js" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
+  ]
+}
