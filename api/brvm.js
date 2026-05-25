@@ -12,7 +12,8 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "Clé API manquante" });
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    // Étape 1 : recherche web séparée
+    const searchResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -22,28 +23,79 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 800,
-        system: `Expert BRVM. Recherche web et réponds en JSON uniquement. Format: {"type":"analyse","titre":"...","contenu":"...","points_cles":["..."],"donnees":[{"label":"...","valeur":"..."}]}`,
-        messages: [{ role: "user", content: query }],
+        max_tokens: 1000,
+        system: "Tu es un assistant de recherche. Effectue une recherche web sur la BRVM et résume les informations trouvées en texte simple et concis. Maximum 400 mots.",
+        messages: [{ role: "user", content: `Recherche web: ${query}` }],
         tools: [{ type: "web_search_20250305", name: "web_search" }],
       }),
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      return res.status(response.status).json({ error: err });
+    let searchResults = "";
+    if (searchResponse.ok) {
+      const searchData = await searchResponse.json();
+      searchResults = (searchData.content || [])
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("\n")
+        .slice(0, 1500);
     }
 
-    const data = await response.json();
-    const text = (data.content || [])
+    // Étape 2 : formatage JSON séparé (sans recherche web = tokens réduits)
+    const formatResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 600,
+        system: `Transforme ce texte en JSON valide. Réponds UNIQUEMENT avec ce JSON, rien d'autre:
+{"type":"analyse","titre":"[titre court]","contenu":"[résumé en 2-3 phrases]","points_cles":["point 1","point 2","point 3","point 4"],"donnees":[{"label":"[nom]","valeur":"[valeur]"}]}
+- points_cles: liste des faits importants
+- donnees: chiffres clés (cours, indices, volumes...)
+- Garde tout en français`,
+        messages: [{ 
+          role: "user", 
+          content: `Texte à formater:\n${searchResults || "Aucune donnée trouvée pour: " + query}` 
+        }],
+      }),
+    });
+
+    if (!formatResponse.ok) {
+      const err = await formatResponse.text();
+      return res.status(formatResponse.status).json({ error: err });
+    }
+
+    const formatData = await formatResponse.json();
+    const text = (formatData.content || [])
       .filter((b) => b.type === "text")
       .map((b) => b.text)
-      .join("\n");
+      .join("\n")
+      .trim();
 
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(500).json({ error: "Réponse vide", raw: text.slice(0, 200) });
+    // Extraction JSON robuste
+    let result;
+    try {
+      const match = text.match(/\{[\s\S]*\}/);
+      result = JSON.parse(match ? match[0] : text);
+    } catch {
+      // Fallback : on construit un JSON depuis le texte brut
+      const lines = searchResults
+        .split("\n")
+        .filter((l) => l.trim().length > 20)
+        .slice(0, 5);
+      result = {
+        type: "analyse",
+        titre: query.slice(0, 60),
+        contenu: searchResults.slice(0, 300) || "Données non disponibles.",
+        points_cles: lines.length ? lines.map((l) => l.trim().slice(0, 120)) : ["Aucune donnée trouvée"],
+        donnees: [],
+      };
+    }
 
-    return res.status(200).json(JSON.parse(match[0]));
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
