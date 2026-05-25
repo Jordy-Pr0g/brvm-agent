@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         "anthropic-beta": "web-search-2025-03-05",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 1500,
         system: `Tu es un agent financier expert de la BRVM (Bourse Régionale des Valeurs Mobilières). Effectue des recherches web pour obtenir les données les plus récentes. Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, sans texte autour. Utilise ces formats selon la demande:
 - Indices: {"type":"indices","updated":"...","items":[{"nom":"","valeur":"","variation_pct":"","ytd":"","description":""}]}
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       .join("\n");
 
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(500).json({ error: "Réponse vide de l'agent", raw: text.slice(0, 200) });
+    if (!match) return res.status(500).json({ error: "Réponse vide", raw: text.slice(0, 200) });
 
     return res.status(200).json(JSON.parse(match[0]));
   } catch (err) {
