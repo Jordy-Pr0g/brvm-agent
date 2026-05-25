@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "Clé API manquante" });
 
   try {
-    // Étape 1 : recherche web séparée
+    // Étape 1 : recherche web approfondie avec plusieurs angles
     const searchResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -23,9 +23,16 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        system: "Tu es un assistant de recherche. Effectue une recherche web sur la BRVM et résume les informations trouvées en texte simple et concis. Maximum 400 mots.",
-        messages: [{ role: "user", content: `Recherche web: ${query}` }],
+        max_tokens: 2000,
+        system: `Tu es un analyste financier expert de la BRVM (Bourse Régionale des Valeurs Mobilières d'Afrique de l'Ouest). 
+Effectue plusieurs recherches web pour collecter un maximum d'informations récentes et détaillées.
+Pour chaque recherche, note:
+- Les chiffres exacts (cours, indices, variations, volumes)
+- Les dates précises
+- Les noms des sociétés et secteurs
+- Les sources (sites web, journaux financiers)
+Compile toutes les informations trouvées de façon exhaustive. Ne résume pas, donne tous les détails.`,
+        messages: [{ role: "user", content: `Recherche approfondie sur: ${query}\n\nEffectue au moins 2-3 recherches web complémentaires pour avoir un maximum d'informations récentes et précises.` }],
         tools: [{ type: "web_search_20250305", name: "web_search" }],
       }),
     });
@@ -37,10 +44,10 @@ export default async function handler(req, res) {
         .filter((b) => b.type === "text")
         .map((b) => b.text)
         .join("\n")
-        .slice(0, 1500);
+        .slice(0, 3000);
     }
 
-    // Étape 2 : formatage JSON séparé (sans recherche web = tokens réduits)
+    // Étape 2 : structuration détaillée en JSON
     const formatResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -50,15 +57,37 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 600,
-        system: `Transforme ce texte en JSON valide. Réponds UNIQUEMENT avec ce JSON, rien d'autre:
-{"type":"analyse","titre":"[titre court]","contenu":"[résumé en 2-3 phrases]","points_cles":["point 1","point 2","point 3","point 4"],"donnees":[{"label":"[nom]","valeur":"[valeur]"}]}
-- points_cles: liste des faits importants
-- donnees: chiffres clés (cours, indices, volumes...)
-- Garde tout en français`,
-        messages: [{ 
-          role: "user", 
-          content: `Texte à formater:\n${searchResults || "Aucune donnée trouvée pour: " + query}` 
+        max_tokens: 1500,
+        system: `Tu es un expert financier BRVM. Transforme les données brutes en JSON structuré et détaillé.
+Réponds UNIQUEMENT avec un JSON valide, rien d'autre avant ou après.
+Format:
+{
+  "type": "analyse",
+  "titre": "[titre descriptif et précis]",
+  "contenu": "[analyse détaillée en 4-6 phrases avec chiffres, dates, contexte marché]",
+  "points_cles": [
+    "point détaillé 1 avec chiffres",
+    "point détaillé 2 avec chiffres",
+    "point détaillé 3 avec chiffres",
+    "point détaillé 4 avec chiffres",
+    "point détaillé 5 avec chiffres",
+    "point détaillé 6 avec chiffres"
+  ],
+  "donnees": [
+    {"label": "nom indicateur", "valeur": "valeur précise avec unité"},
+    {"label": "nom indicateur", "valeur": "valeur précise avec unité"},
+    {"label": "nom indicateur", "valeur": "valeur précise avec unité"},
+    {"label": "nom indicateur", "valeur": "valeur précise avec unité"}
+  ]
+}
+- Inclus TOUS les chiffres disponibles (cours, indices, variations, volumes, capitalisations)
+- Mentionne les dates précises
+- Cite les sociétés par leur nom complet et ticker
+- Garde tout en français
+- Si une info manque, indique "N/D"`,
+        messages: [{
+          role: "user",
+          content: `Données brutes à structurer:\n\n${searchResults || "Aucune donnée trouvée pour: " + query}`
         }],
       }),
     });
@@ -81,16 +110,15 @@ export default async function handler(req, res) {
       const match = text.match(/\{[\s\S]*\}/);
       result = JSON.parse(match ? match[0] : text);
     } catch {
-      // Fallback : on construit un JSON depuis le texte brut
       const lines = searchResults
         .split("\n")
-        .filter((l) => l.trim().length > 20)
-        .slice(0, 5);
+        .filter((l) => l.trim().length > 30)
+        .slice(0, 8);
       result = {
         type: "analyse",
         titre: query.slice(0, 60),
-        contenu: searchResults.slice(0, 300) || "Données non disponibles.",
-        points_cles: lines.length ? lines.map((l) => l.trim().slice(0, 120)) : ["Aucune donnée trouvée"],
+        contenu: searchResults.slice(0, 500) || "Données non disponibles.",
+        points_cles: lines.length ? lines.map((l) => l.trim().slice(0, 150)) : ["Aucune donnée trouvée"],
         donnees: [],
       };
     }
