@@ -11,6 +11,50 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "Clé API manquante" });
 
+  const q = query.toLowerCase();
+  let systemPrompt = "";
+
+  if (q.includes("indice") || q.includes("composite") || q.includes("prestige") || q.includes("brvm 30")) {
+    systemPrompt = `Expert BRVM. Recherche les valeurs EXACTES des indices BRVM sur brvm.org, daba.finance, sikafinance.com. Retourne UNIQUEMENT ce JSON:
+{"type":"indices","updated":"[date]","items":[{"nom":"BRVM Composite","valeur":"[pts]","variation_pct":"[+/-x.xx%]","ytd":"[+/-x.xx%]","volume":"[FCFA]","description":"[1 phrase]"},{"nom":"BRVM 30","valeur":"...","variation_pct":"...","ytd":"...","volume":"...","description":"..."},{"nom":"BRVM Prestige","valeur":"...","variation_pct":"...","ytd":"...","volume":"...","description":"..."}]}
+JSON uniquement.`;
+
+  } else if (q.includes("cours") || q.includes("action") || q.includes("titre") || q.includes("cote")) {
+    systemPrompt = `Expert BRVM. Recherche les cours actuels sur brvm.org ou sikafinance.com. Retourne UNIQUEMENT ce JSON:
+{"type":"cours","updated":"[date]","items":[{"ticker":"[ex:SNTS]","societe":"[nom]","secteur":"[secteur]","cours":"[FCFA]","variation_pct":"[+/-x.xx%]","volume":"[vol]","capitalisation":"[Mds FCFA]"}]}
+Au moins 15 actions réelles. JSON uniquement.`;
+
+  } else if (q.includes("actual") || q.includes("news") || q.includes("information") || q.includes("nouvelle")) {
+    systemPrompt = `Expert BRVM. Recherche les actualités récentes sur la BRVM. Retourne UNIQUEMENT ce JSON:
+{"type":"news","items":[{"titre":"[titre précis]","source":"[source]","date":"[date]","resume":"[2-3 phrases avec chiffres]","categorie":"marché|société|dividende|IPO|réglementation","impact":"positif|négatif|neutre"}]}
+Au moins 8 actualités détaillées. JSON uniquement.`;
+
+  } else if (q.includes("synthèse") || q.includes("synthese") || q.includes("marché") || q.includes("global")) {
+    systemPrompt = `Expert BRVM. Recherche une vue complète du marché. Retourne UNIQUEMENT ce JSON:
+{"type":"synthese","date":"[date]","sentiment":"haussier|baissier|neutre","resume_marche":"[3-4 phrases avec chiffres]","indices":[{"nom":"...","valeur":"...","variation_pct":"..."}],"top_hausses":[{"ticker":"...","societe":"...","cours":"...","variation_pct":"..."}],"top_baisses":[{"ticker":"...","societe":"...","cours":"...","variation_pct":"..."}],"volumes":{"total":"...","valeur":"..."},"news_cles":[{"titre":"...","resume":"...","impact":"positif|négatif|neutre"}]}
+Top 5 hausses et baisses. JSON uniquement.`;
+
+  } else if (q.includes("dividende")) {
+    systemPrompt = `Expert BRVM. Recherche les dividendes 2025-2026. Retourne UNIQUEMENT ce JSON:
+{"type":"dividendes","updated":"[date]","items":[{"societe":"...","ticker":"...","dividende":"[FCFA]","rendement":"[x.xx%]","date_detachement":"...","date_paiement":"...","exercice":"..."}]}
+Au moins 10 sociétés. JSON uniquement.`;
+
+  } else if (q.includes("capitalisation") || q.includes("top 10") || q.includes("plus grande")) {
+    systemPrompt = `Expert BRVM. Recherche les plus grandes capitalisations sur brvm.org. Retourne UNIQUEMENT ce JSON:
+{"type":"capitalisations","updated":"[date]","total_marche":"[Mds FCFA]","items":[{"rang":1,"ticker":"...","societe":"...","secteur":"...","capitalisation":"[Mds FCFA]","cours":"...","variation_ytd":"..."}]}
+Top 10 réel. JSON uniquement.`;
+
+  } else if (q.includes("ipo") || q.includes("introduction") || q.includes("cotation")) {
+    systemPrompt = `Expert BRVM. Recherche les IPO récentes et à venir. Retourne UNIQUEMENT ce JSON:
+{"type":"ipo","items":[{"societe":"...","secteur":"...","statut":"prévu|récent|en cours","date":"...","prix_emission":"...","montant_leve":"...","details":"[2-3 phrases]"}]}
+JSON uniquement.`;
+
+  } else {
+    systemPrompt = `Expert financier BRVM. Recherche des infos précises et récentes. Retourne UNIQUEMENT ce JSON:
+{"type":"analyse","titre":"[titre précis]","contenu":"[4-5 phrases avec chiffres et dates réels]","points_cles":["[fait précis 1]","[fait précis 2]","[fait précis 3]","[fait précis 4]","[fait précis 5]","[fait précis 6]"],"donnees":[{"label":"...","valeur":"[chiffre + unité]"},{"label":"...","valeur":"..."},{"label":"...","valeur":"..."},{"label":"...","valeur":"..."}],"source":"[sites consultés]"}
+Chiffres RÉELS uniquement. JSON uniquement.`;
+  }
+
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -22,13 +66,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        system: `Expert BRVM. Recherche web puis réponds UNIQUEMENT en JSON:
-{"type":"analyse","titre":"...","contenu":"...","points_cles":["..."],"donnees":[{"label":"...","valeur":"..."}]}
-- contenu: 3-4 phrases détaillées avec chiffres
-- points_cles: 5-6 faits précis avec chiffres et dates
-- donnees: 4-6 indicateurs clés chiffrés
-JSON uniquement, pas de texte autour.`,
+        max_tokens: 1200,
+        system: systemPrompt,
         messages: [{ role: "user", content: query }],
         tools: [{ type: "web_search_20250305", name: "web_search" }],
       }),
@@ -54,7 +93,7 @@ JSON uniquement, pas de texte autour.`,
       result = {
         type: "analyse",
         titre: query.slice(0, 60),
-        contenu: text.slice(0, 400) || "Données non disponibles.",
+        contenu: text.slice(0, 500) || "Données non disponibles.",
         points_cles: text.split("\n").filter(l => l.trim().length > 20).slice(0, 5).map(l => l.trim()),
         donnees: [],
       };
