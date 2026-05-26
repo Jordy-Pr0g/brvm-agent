@@ -1,153 +1,226 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent BRVM</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BRVM Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0a0e0c;--bg2:#111612;--bg3:#181f1a;--border:rgba(74,222,128,.12);--border2:rgba(74,222,128,.25);--green:#4ade80;--red:#f87171;--amber:#fbbf24;--text:#e8f5e9;--text2:#6b8f72;--text3:#3a5240;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f4f5f0;--bg2:#ffffff;--bg3:#eef0ea;--bg4:#e8ebe2;
+      --border:#d6d9ce;--border2:#b8c4a8;
+      --green:#2d6a4f;--green2:#40916c;--green3:#74c69d;--green-light:#d8f3dc;
+      --red:#c1121f;--red-light:#fde8e9;
+      --amber:#b5820a;--amber-light:#fef3cd;
+      --text:#1a1f16;--text2:#4a5240;--text3:#8a9480;--text4:#b8bdb0;
+      --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+      --shadow2:0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+      --radius:10px;
+      --sans:'IBM Plex Sans',sans-serif;--serif:'Playfair Display',serif;--mono:'IBM Plex Mono',monospace;
+    }
     body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
-    header{border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-    .logo{display:flex;align-items:center;gap:12px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    h1{font-size:18px;font-weight:700;letter-spacing:.05em}
-    .sub{font-size:12px;color:var(--text2);font-family:var(--mono)}
-    .main{padding:28px 32px;max-width:1100px;margin:0 auto}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px}
-    .btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;text-align:left;font-family:var(--sans);transition:.2s}
-    .btn:hover{border-color:var(--border2);background:var(--bg3)}
-    .btn .icon{font-size:20px;margin-bottom:8px;display:block}
-    .btn .label{font-size:13px;font-weight:600;color:var(--text);display:block}
-    .btn .hint{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:2px;display:block}
-    .search{display:flex;gap:10px;margin-bottom:24px}
-    .search input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:var(--mono);outline:none;transition:.2s}
-    .search input:focus{border-color:var(--border2)}
-    .search input::placeholder{color:var(--text3)}
-    .search button{background:var(--green);color:#0a0e0c;border:none;border-radius:8px;padding:12px 22px;font-size:13px;font-weight:700;font-family:var(--sans);cursor:pointer;transition:.2s}
-    .search button:hover{opacity:.85}
-    .search button:disabled{opacity:.4;cursor:not-allowed}
+    header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px;flex-wrap:wrap}
+    .logo{display:flex;align-items:center;gap:14px}
+    .logo-mark{width:36px;height:36px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .logo-text h1{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--text)}
+    .logo-text p{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+    .header-right{display:flex;align-items:center;gap:16px}
+    .live-badge{display:flex;align-items:center;gap:6px;background:var(--green-light);border:1px solid var(--green3);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--green);font-family:var(--mono);font-weight:500}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green2);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .header-date{font-size:12px;color:var(--text3);font-family:var(--mono)}
+    .main{padding:28px 32px;max-width:1160px;margin:0 auto}
+    .section-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+    .quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:28px}
+    .quick-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;text-align:left;font-family:var(--sans);transition:all .18s;box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .quick-btn::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);opacity:0;transition:opacity .18s}
+    .quick-btn:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-1px);box-shadow:var(--shadow2)}
+    .quick-btn:hover::before{opacity:1}
+    .q-icon{font-size:18px;margin-bottom:10px;display:block}
+    .q-label{font-size:13px;font-weight:600;color:var(--text);display:block}
+    .q-sub{font-size:11px;color:var(--text3);margin-top:3px;display:block;font-family:var(--mono)}
+    .search-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:6px 6px 6px 18px;display:flex;align-items:center;gap:8px;margin-bottom:16px;box-shadow:var(--shadow);transition:border-color .18s}
+    .search-wrap:focus-within{border-color:var(--green2)}
+    .search-wrap input{flex:1;border:none;outline:none;font-size:14px;color:var(--text);background:transparent;font-family:var(--sans);padding:6px 0}
+    .search-wrap input::placeholder{color:var(--text4)}
+    .search-wrap button{background:var(--green);color:white;border:none;border-radius:7px;padding:10px 20px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .18s;white-space:nowrap}
+    .search-wrap button:hover{background:var(--green2)}
+    .search-wrap button:disabled{opacity:.5;cursor:not-allowed}
     .tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:28px}
-    .tag{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--text2);font-family:var(--mono);cursor:pointer;transition:.2s}
-    .tag:hover{border-color:var(--green);color:var(--green)}
-    #results{display:flex;flex-direction:column;gap:20px}
-    .loading{display:flex;align-items:center;gap:12px;padding:20px;font-family:var(--mono);font-size:13px;color:var(--text2)}
-    .spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+    .tag{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;font-family:var(--mono)}
+    .tag:hover{background:var(--green-light);border-color:var(--green3);color:var(--green)}
+    .loader{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;font-size:13px;color:var(--text2);box-shadow:var(--shadow)}
+    .spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-    .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-    .card-title{font-size:14px;font-weight:600;letter-spacing:.03em}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .card-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--bg3)}
+    .card-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--text)}
     .card-meta{font-family:var(--mono);font-size:11px;color:var(--text3)}
+    .metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border)}
+    .metric{background:var(--bg2);padding:22px 24px}
+    .m-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+    .m-value{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--text);line-height:1;margin-bottom:6px}
+    .m-var{font-size:13px;font-family:var(--mono);font-weight:500}
+    .m-ytd{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+    .m-desc{font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4}
+    .table-wrap{overflow-x:auto}
     table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
-    th{padding:10px 16px;text-align:left;font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400}
-    td{padding:11px 16px;border-bottom:1px solid rgba(74,222,128,.05);color:var(--text)}
+    thead{background:var(--bg3)}
+    th{padding:11px 16px;text-align:left;font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+    td{padding:12px 16px;border-bottom:1px solid var(--bg3);color:var(--text);vertical-align:middle}
     tr:last-child td{border-bottom:none}
     tr:hover td{background:var(--bg3)}
-    .up{color:#4ade80}.down{color:#f87171}.neutral{color:var(--text2)}
-    .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono)}
-    .pill-up{background:rgba(74,222,128,.1);color:#4ade80}
-    .pill-down{background:rgba(248,113,113,.1);color:#f87171}
-    .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--border)}
-    .metric{background:var(--bg2);padding:20px}
-    .m-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-    .m-value{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px}
-    .m-var{font-size:13px;font-family:var(--mono)}
-    .news-item{padding:16px 20px;border-bottom:1px solid var(--border)}
+    .ticker{font-weight:600;color:var(--green)}
+    .right{text-align:right}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:12px;font-family:var(--mono);font-weight:500}
+    .badge-up{background:var(--green-light);color:var(--green)}
+    .badge-down{background:var(--red-light);color:var(--red)}
+    .badge-neutral{background:var(--bg3);color:var(--text3)}
+    .impact-pos{background:var(--green-light);color:var(--green)}
+    .impact-neg{background:var(--red-light);color:var(--red)}
+    .impact-neu{background:var(--bg3);color:var(--text3)}
+    .news-item{padding:18px 22px;border-bottom:1px solid var(--border)}
     .news-item:last-child{border-bottom:none}
-    .news-cat{display:inline-block;font-size:10px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:3px;margin-bottom:7px}
-    .cat-m{background:rgba(251,191,36,.1);color:var(--amber)}
-    .cat-i{background:rgba(74,222,128,.1);color:var(--green)}
-    .cat-s{background:rgba(129,140,248,.1);color:#818cf8}
-    .cat-r{background:rgba(248,113,113,.1);color:var(--red)}
-    .news-title{font-size:14px;font-weight:600;margin-bottom:5px}
-    .news-resume{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:6px}
+    .news-cat{font-size:10px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:4px;margin-bottom:6px;display:inline-block}
+    .cat-marche{background:var(--amber-light);color:var(--amber)}
+    .cat-societe{background:#e8f4fd;color:#1a6fa8}
+    .cat-dividende{background:var(--green-light);color:var(--green)}
+    .cat-ipo{background:#f0ebff;color:#6d3fc8}
+    .cat-reglementation{background:var(--red-light);color:var(--red)}
+    .news-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4}
+    .news-resume{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
     .news-footer{font-family:var(--mono);font-size:11px;color:var(--text3)}
-    .s-badge{padding:4px 12px;border-radius:4px;font-size:12px;font-family:var(--mono)}
-    .s-h{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3)}
-    .s-b{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.3)}
-    .s-n{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
-    .analyse-body{padding:20px;font-size:14px;color:var(--text2);line-height:1.7}
-    .points{list-style:none;margin-top:14px}
-    .points li{padding:7px 0 7px 16px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:13px;color:var(--text);position:relative}
-    .points li::before{content:'›';position:absolute;left:0;color:var(--green)}
-    .points li:last-child{border-bottom:none}
-    .err{padding:16px 20px;font-family:var(--mono);font-size:13px;color:var(--red);background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2);border-radius:8px}
-    @media(max-width:600px){header,.main{padding:16px}.grid{grid-template-columns:repeat(2,1fr)}}
+    .sentiment-bar{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--border);background:var(--bg3)}
+    .s-label{font-size:12px;color:var(--text3);font-family:var(--mono)}
+    .s-badge{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;font-family:var(--mono)}
+    .s-haussier{background:var(--green-light);color:var(--green);border:1px solid var(--green3)}
+    .s-baissier{background:var(--red-light);color:var(--red);border:1px solid #f5a0a5}
+    .s-neutre{background:var(--amber-light);color:var(--amber);border:1px solid #f0d080}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+    .col-block{background:var(--bg2);padding:18px 22px}
+    .col-title{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .move-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bg3)}
+    .move-row:last-child{border-bottom:none}
+    .move-name{font-size:13px;font-family:var(--mono)}
+    .move-ticker{font-weight:600;color:var(--green);margin-right:6px}
+    .analyse-body{padding:22px}
+    .analyse-text{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:20px}
+    .donnees-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+    .donnee-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+    .donnee-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+    .donnee-val{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--text)}
+    .points-list{list-style:none}
+    .points-list li{padding:10px 0 10px 20px;border-bottom:1px solid var(--bg3);font-size:13px;color:var(--text2);line-height:1.5;position:relative}
+    .points-list li:last-child{border-bottom:none}
+    .points-list li::before{content:'▸';position:absolute;left:0;color:var(--green2);font-size:12px;top:11px}
+    .source-tag{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+    .err-card{background:var(--red-light);border:1px solid #f5a0a5;border-radius:var(--radius);padding:16px 22px;font-size:13px;color:var(--red);font-family:var(--mono)}
+    .up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--text3)}
+    .rang{font-size:12px;color:var(--text3);font-family:var(--mono);font-weight:500}
+    @media(max-width:640px){header{padding:12px 16px;height:auto}.main{padding:16px}.quick-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 <header>
   <div class="logo">
-    <div class="dot"></div>
-    <div><h1>AGENT BRVM</h1><span class="sub">Bourse Régionale des Valeurs Mobilières · UEMOA</span></div>
+    <div class="logo-mark">📊</div>
+    <div class="logo-text">
+      <h1>BRVM Intelligence</h1>
+      <p>Bourse Régionale des Valeurs Mobilières · UEMOA</p>
+    </div>
   </div>
-  <div class="sub" id="date"></div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>Données en direct</div>
+    <div class="header-date" id="hdate"></div>
+  </div>
 </header>
 <main class="main">
-  <div class="grid">
-    <button class="btn" onclick="ask('Synthèse complète du marché BRVM aujourd\'hui : indices, top hausses, top baisses, volumes, sentiment.')"><span class="icon">⬡</span><span class="label">Synthèse marché</span><span class="hint">Vue globale du jour</span></button>
-    <button class="btn" onclick="ask('Valeurs actuelles des indices BRVM : Composite, 30, Prestige. Variation du jour et YTD.')"><span class="icon">◈</span><span class="label">Indices</span><span class="hint">Composite · 30 · Prestige</span></button>
-    <button class="btn" onclick="ask('Cours actuels des principales actions BRVM : ticker, société, cours, variation %, volume.')"><span class="icon">▦</span><span class="label">Cours actions</span><span class="hint">Toutes valeurs</span></button>
-    <button class="btn" onclick="ask('Dernières actualités BRVM : résultats entreprises, nouvelles cotations, annonces.')"><span class="icon">◎</span><span class="label">Actualités</span><span class="hint">News du marché</span></button>
-    <button class="btn" onclick="ask('Top hausses et top baisses BRVM cette semaine avec variations en %.')"><span class="icon">△▽</span><span class="label">Hausses/Baisses</span><span class="hint">Mouvements extrêmes</span></button>
-    <button class="btn" onclick="ask('Dividendes annoncés ou versés par sociétés cotées BRVM 2025-2026.')"><span class="icon">◉</span><span class="label">Dividendes</span><span class="hint">2025 – 2026</span></button>
-    <button class="btn" onclick="ask('IPO et nouvelles introductions en bourse BRVM : détails, valorisations, calendrier.')"><span class="icon">⬟</span><span class="label">IPO & cotations</span><span class="hint">Nouvelles entrées</span></button>
-    <button class="btn" onclick="ask('Top 10 capitalisations boursières BRVM avec secteur et valeur en milliards FCFA.')"><span class="icon">◐</span><span class="label">Capitalisations</span><span class="hint">Top 10 BRVM</span></button>
+  <div class="section-label">Accès rapide</div>
+  <div class="quick-grid">
+    <button class="quick-btn" onclick="ask('Synthèse complète du marché BRVM aujourd\'hui : indices, top hausses, top baisses, volumes, sentiment')"><span class="q-icon">📊</span><span class="q-label">Synthèse marché</span><span class="q-sub">Vue globale du jour</span></button>
+    <button class="quick-btn" onclick="ask('Valeurs actuelles des indices BRVM Composite 30 Prestige avec variation du jour et YTD')"><span class="q-icon">📈</span><span class="q-label">Indices BRVM</span><span class="q-sub">Composite · 30 · Prestige</span></button>
+    <button class="quick-btn" onclick="ask('Cours actuels des actions cotées à la BRVM avec variation et volume')"><span class="q-icon">🏦</span><span class="q-label">Cours actions</span><span class="q-sub">Toutes valeurs cotées</span></button>
+    <button class="quick-btn" onclick="ask('Dernières actualités et informations importantes de la BRVM')"><span class="q-icon">📰</span><span class="q-label">Actualités</span><span class="q-sub">News du marché</span></button>
+    <button class="quick-btn" onclick="ask('Top hausses et top baisses à la BRVM cette semaine')"><span class="q-icon">⚡</span><span class="q-label">Hausses / Baisses</span><span class="q-sub">Mouvements extrêmes</span></button>
+    <button class="quick-btn" onclick="ask('Dividendes annoncés et versés par les sociétés cotées BRVM 2025 2026')"><span class="q-icon">💰</span><span class="q-label">Dividendes</span><span class="q-sub">2025 – 2026</span></button>
+    <button class="quick-btn" onclick="ask('IPO et nouvelles introductions en bourse BRVM détails et calendrier')"><span class="q-icon">🚀</span><span class="q-label">IPO & cotations</span><span class="q-sub">Nouvelles entrées</span></button>
+    <button class="quick-btn" onclick="ask('Top 10 des plus grandes capitalisations boursières à la BRVM')"><span class="q-icon">🏆</span><span class="q-label">Capitalisations</span><span class="q-sub">Top 10 BRVM</span></button>
   </div>
-  <div class="search">
-    <input type="text" id="q" placeholder="Ex: analyse SONATEL, obligations BRVM, secteur bancaire..." />
+  <div class="section-label">Recherche personnalisée</div>
+  <div class="search-wrap">
+    <input type="text" id="q" placeholder="Ex : analyse SONATEL, secteur bancaire, obligations UEMOA..."/>
     <button id="sbtn" onclick="send()">Analyser →</button>
   </div>
   <div class="tags">
-    <span class="tag" onclick="setQ('Analyse SONATEL BRVM : cours, résultats, dividendes, perspectives')">SONATEL</span>
-    <span class="tag" onclick="setQ('Analyse ECOBANK BRVM : cours actuel, résultats récents')">ECOBANK</span>
-    <span class="tag" onclick="setQ('Analyse CORIS BANK BRVM : cours, variation, performances')">CORIS BANK</span>
-    <span class="tag" onclick="setQ('Secteur bancaire BRVM : comparatif banques cotées, valorisation')">Secteur bancaire</span>
-    <span class="tag" onclick="setQ('Obligations cotées BRVM : émetteurs, taux, maturité')">Obligations</span>
-    <span class="tag" onclick="setQ('Volumes transactions BRVM cette semaine et liquidité du marché')">Volumes</span>
+    <span class="tag" onclick="setQ('Analyse fondamentale SONATEL BRVM : cours, résultats financiers, dividendes, perspectives')">SONATEL</span>
+    <span class="tag" onclick="setQ('Analyse ECOBANK BRVM : cours actuel, résultats récents, variation')">ECOBANK</span>
+    <span class="tag" onclick="setQ('Analyse CORIS BANK BRVM : cours, performances, résultats')">CORIS BANK</span>
+    <span class="tag" onclick="setQ('Secteur bancaire BRVM : comparatif des banques cotées et performances')">Secteur bancaire</span>
+    <span class="tag" onclick="setQ('Obligations et titres de créance cotés à la BRVM : taux et maturité')">Obligations</span>
+    <span class="tag" onclick="setQ('Volumes de transactions et liquidité du marché BRVM cette semaine')">Volumes</span>
+    <span class="tag" onclick="setQ('Agenda corporate BRVM 2026 : assemblées générales et publications de résultats')">Agenda 2026</span>
   </div>
   <div id="results"></div>
 </main>
 <script>
-document.getElementById('date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('hdate').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 function setQ(t){document.getElementById('q').value=t;document.getElementById('q').focus()}
 function ask(q){document.getElementById('q').value=q;send()}
 function vc(v){const n=parseFloat(v);return n>0?'up':n<0?'down':'neutral'}
-function pc(v){const n=parseFloat(v);return n>0?'pill pill-up':n<0?'pill pill-down':'pill'}
-function cc(c){const m={'marché':'cat-m','IPO':'cat-i','société':'cat-s','réglementation':'cat-r'};return'news-cat '+(m[c]||'')}
+function bc(v){const n=parseFloat(v);return n>0?'badge badge-up':n<0?'badge badge-down':'badge badge-neutral'}
+function arrow(v){const n=parseFloat(v);return n>0?'▲':n<0?'▼':'—'}
+function catClass(c){const m={'marché':'cat-marche','société':'cat-societe','dividende':'cat-dividende','IPO':'cat-ipo','réglementation':'cat-reglementation'};return'news-cat '+(m[c]||'cat-marche')}
 async function send(){
   const q=document.getElementById('q').value.trim();
   if(!q)return;
   const btn=document.getElementById('sbtn');
-  const res=document.getElementById('results');
+  const results=document.getElementById('results');
   btn.disabled=true;btn.textContent='...';
-  res.innerHTML='<div class="loading"><div class="spinner"></div>Recherche en cours sur la BRVM...</div>';
+  results.innerHTML='<div class="loader"><div class="spinner"></div>Recherche en cours sur la BRVM...</div>';
   try{
     const r=await fetch('/api/brvm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Erreur serveur');
-    res.innerHTML='';
-    res.appendChild(render(d));
+    results.innerHTML='';
+    results.appendChild(render(d));
   }catch(e){
-    res.innerHTML=`<div class="err">Erreur : ${e.message}</div>`;
+    results.innerHTML=`<div class="err-card">Erreur : ${e.message}</div>`;
   }finally{btn.disabled=false;btn.textContent='Analyser →'}
 }
 function render(d){
   const w=document.createElement('div');
   if(d.type==='indices'){
-    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Indices BRVM</span><span class="card-meta">${d.updated||''}</span></div><div class="metric-grid">${(d.items||[]).map(it=>`<div class="metric"><div class="m-label">${it.nom}</div><div class="m-value">${it.valeur}</div><div class="m-var ${vc(it.variation_pct)}">${it.variation_pct||'—'}${it.ytd?` <span style="color:var(--text3)">YTD ${it.ytd}</span>`:''}</div>${it.description?`<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:6px">${it.description}</div>`:''}</div>`).join('')}</div></div>`;
+    const metrics=(d.items||[]).map(it=>`<div class="metric"><div class="m-label">${it.nom}</div><div class="m-value">${it.valeur||'N/D'}</div><div class="m-var ${vc(it.variation_pct)}">${arrow(it.variation_pct)} ${it.variation_pct||'—'}</div>${it.ytd?`<div class="m-ytd">YTD : ${it.ytd}</div>`:''} ${it.volume?`<div class="m-ytd">Vol. : ${it.volume}</div>`:''} ${it.description?`<div class="m-desc">${it.description}</div>`:''}</div>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Indices BRVM</span><span class="card-meta">${d.updated||''}</span></div><div class="metric-row">${metrics}</div></div>`;
   }else if(d.type==='cours'){
-    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Cours des actions</span><span class="card-meta">${d.updated||''}</span></div><div style="overflow-x:auto"><table><thead><tr><th>Ticker</th><th>Société</th><th>Secteur</th><th style="text-align:right">Cours</th><th style="text-align:right">Variation</th><th style="text-align:right">Volume</th></tr></thead><tbody>${(d.items||[]).map(it=>`<tr><td style="font-weight:500;color:var(--green)">${it.ticker||''}</td><td>${it.societe||''}</td><td style="color:var(--text2)">${it.secteur||''}</td><td style="text-align:right">${it.cours||'—'}</td><td style="text-align:right"><span class="${pc(it.variation_pct)}">${it.variation_pct||'—'}</span></td><td style="text-align:right;color:var(--text2)">${it.volume||'—'}</td></tr>`).join('')}</tbody></table></div></div>`;
+    const rows=(d.items||[]).map(it=>`<tr><td class="ticker">${it.ticker||''}</td><td>${it.societe||''}</td><td style="color:var(--text3)">${it.secteur||''}</td><td class="right" style="font-weight:600">${it.cours||'—'}</td><td class="right"><span class="${bc(it.variation_pct)}">${arrow(it.variation_pct)} ${it.variation_pct||'—'}</span></td><td class="right" style="color:var(--text3)">${it.volume||'—'}</td><td class="right" style="color:var(--text3)">${it.capitalisation||'—'}</td></tr>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Cours des actions BRVM</span><span class="card-meta">${d.updated||''}</span></div><div class="table-wrap"><table><thead><tr><th>Ticker</th><th>Société</th><th>Secteur</th><th class="right">Cours</th><th class="right">Variation</th><th class="right">Volume</th><th class="right">Capitalisation</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }else if(d.type==='news'){
-    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Actualités BRVM</span></div>${(d.items||[]).map(it=>`<div class="news-item">${it.categorie?`<span class="${cc(it.categorie)}">${it.categorie}</span>`:''}<div class="news-title">${it.titre}</div><div class="news-resume">${it.resume}</div><div class="news-footer">${it.source||''}${it.date?' · '+it.date:''}</div></div>`).join('')}</div>`;
+    const items=(d.items||[]).map(it=>`<div class="news-item"><span class="${catClass(it.categorie)}">${it.categorie||'marché'}</span>${it.impact?`<span class="badge ${it.impact==='positif'?'impact-pos':it.impact==='négatif'?'impact-neg':'impact-neu'}" style="float:right;margin-top:2px">${it.impact}</span>`:''}<div class="news-title">${it.titre||''}</div><div class="news-resume">${it.resume||''}</div><div class="news-footer">${it.source||''}${it.date?' · '+it.date:''}</div></div>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Actualités BRVM</span></div>${items}</div>`;
   }else if(d.type==='synthese'){
-    const sc={haussier:'s-h',baissier:'s-b',neutre:'s-n'}[d.sentiment]||'s-n';
-    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Synthèse du marché</span><span class="s-badge ${sc}">${d.sentiment||'neutre'}</span></div>${d.resume_marche?`<div class="analyse-body">${d.resume_marche}</div>`:''}<div class="metric-grid">${(d.indices||[]).map(it=>`<div class="metric"><div class="m-label">${it.nom}</div><div class="m-value">${it.valeur||'—'}</div><div class="m-var ${vc(it.variation_pct)}">${it.variation_pct||''}</div></div>`).join('')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)"><div style="background:var(--bg2);padding:16px 20px"><div style="font-size:11px;color:var(--green);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">▲ Top hausses</div>${(d.top_hausses||[]).map(it=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-family:var(--mono)">${it.ticker} <span style="color:var(--text2)">${it.societe||''}</span></span><span class="up" style="font-size:13px;font-family:var(--mono);font-weight:500">${it.variation_pct}</span></div>`).join('')}</div><div style="background:var(--bg2);padding:16px 20px"><div style="font-size:11px;color:var(--red);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">▼ Top baisses</div>${(d.top_baisses||[]).map(it=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-family:var(--mono)">${it.ticker} <span style="color:var(--text2)">${it.societe||''}</span></span><span class="down" style="font-size:13px;font-family:var(--mono);font-weight:500">${it.variation_pct}</span></div>`).join('')}</div></div>${(d.news_cles||[]).length?`<div>${d.news_cles.map(n=>`<div class="news-item"><div class="news-title">${n.titre}</div><div class="news-resume">${n.resume}</div></div>`).join('')}</div>`:''}</div>`;
+    const sc={haussier:'s-haussier',baissier:'s-baissier',neutre:'s-neutre'}[d.sentiment]||'s-neutre';
+    const metrics=(d.indices||[]).map(it=>`<div class="metric"><div class="m-label">${it.nom}</div><div class="m-value">${it.valeur||'—'}</div><div class="m-var ${vc(it.variation_pct)}">${arrow(it.variation_pct)} ${it.variation_pct||'—'}</div></div>`).join('');
+    const hausses=(d.top_hausses||[]).map(it=>`<div class="move-row"><span class="move-name"><span class="move-ticker">${it.ticker}</span>${it.societe||''}</span><span class="badge badge-up">${arrow(it.variation_pct)} ${it.variation_pct}</span></div>`).join('');
+    const baisses=(d.top_baisses||[]).map(it=>`<div class="move-row"><span class="move-name"><span class="move-ticker">${it.ticker}</span>${it.societe||''}</span><span class="badge badge-down">${arrow(it.variation_pct)} ${it.variation_pct}</span></div>`).join('');
+    const news=(d.news_cles||[]).map(n=>`<div class="news-item">${n.impact?`<span class="badge ${n.impact==='positif'?'impact-pos':n.impact==='négatif'?'impact-neg':'impact-neu'}" style="float:right">${n.impact}</span>`:''}<div class="news-title">${n.titre||''}</div><div class="news-resume">${n.resume||''}</div></div>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Synthèse du marché BRVM</span><span class="card-meta">${d.date||''}</span></div><div class="sentiment-bar"><span class="s-label">Sentiment :</span><span class="s-badge ${sc}">${d.sentiment||'neutre'}</span>${d.volumes?`<span class="card-meta" style="margin-left:auto">Vol. : ${d.volumes.total||''} · ${d.volumes.valeur||''}</span>`:''}</div>${d.resume_marche?`<div class="analyse-body"><p class="analyse-text">${d.resume_marche}</p></div>`:''}<div class="metric-row">${metrics}</div><div class="two-col"><div class="col-block"><div class="col-title"><span style="color:var(--green)">▲</span> Top hausses</div>${hausses||'<div style="color:var(--text3);font-size:13px">N/D</div>'}</div><div class="col-block"><div class="col-title"><span style="color:var(--red)">▼</span> Top baisses</div>${baisses||'<div style="color:var(--text3);font-size:13px">N/D</div>'}</div></div>${news?`<div><div class="card-header" style="border-top:1px solid var(--border)"><span class="card-title" style="font-size:14px">Actualités clés</span></div>${news}</div>`:''}</div>`;
+  }else if(d.type==='dividendes'){
+    const rows=(d.items||[]).map(it=>`<tr><td class="ticker">${it.ticker||''}</td><td>${it.societe||''}</td><td class="right" style="font-weight:600">${it.dividende||'—'}</td><td class="right"><span class="badge badge-up">${it.rendement||'—'}</span></td><td class="right" style="color:var(--text3)">${it.date_detachement||'—'}</td><td class="right" style="color:var(--text3)">${it.date_paiement||'—'}</td><td style="color:var(--text3)">${it.exercice||'—'}</td></tr>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Dividendes BRVM 2025–2026</span><span class="card-meta">${d.updated||''}</span></div><div class="table-wrap"><table><thead><tr><th>Ticker</th><th>Société</th><th class="right">Dividende</th><th class="right">Rendement</th><th class="right">Détachement</th><th class="right">Paiement</th><th>Exercice</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }else if(d.type==='capitalisations'){
+    const rows=(d.items||[]).map(it=>`<tr><td class="rang">${it.rang||''}</td><td class="ticker">${it.ticker||''}</td><td>${it.societe||''}</td><td style="color:var(--text3)">${it.secteur||''}</td><td class="right" style="font-weight:600">${it.capitalisation||'—'}</td><td class="right">${it.cours||'—'}</td><td class="right"><span class="${bc(it.variation_ytd)}">${it.variation_ytd||'—'}</span></td></tr>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">Top 10 Capitalisations BRVM</span><span class="card-meta">${d.total_marche?'Marché total : '+d.total_marche:d.updated||''}</span></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Ticker</th><th>Société</th><th>Secteur</th><th class="right">Capitalisation</th><th class="right">Cours</th><th class="right">YTD</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }else if(d.type==='ipo'){
+    const items=(d.items||[]).map(it=>`<div class="news-item"><span class="news-cat cat-ipo">${it.statut||'IPO'}</span><div class="news-title">${it.societe||''} <span style="color:var(--text3);font-weight:400;font-size:13px">· ${it.secteur||''}</span></div><div class="news-resume">${it.details||''}</div><div class="news-footer">${it.date?'Date : '+it.date+' · ':''} ${it.prix_emission?'Prix : '+it.prix_emission+' · ':''} ${it.montant_leve?'Montant : '+it.montant_leve:''}</div></div>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">IPO & Nouvelles cotations BRVM</span></div>${items}</div>`;
   }else{
-    w.innerHTML=`<div class="card"><div class="analyse-body"><b>${d.titre||'Analyse'}</b><br><br>${d.contenu||''}${(d.points_cles||[]).length?`<ul class="points">${d.points_cles.map(p=>`<li>${p}</li>`).join('')}</ul>`:''}</div></div>`;
+    const pts=(d.points_cles||[]).map(p=>`<li>${p}</li>`).join('');
+    const donnees=(d.donnees||[]).map(don=>`<div class="donnee-card"><div class="donnee-label">${don.label}</div><div class="donnee-val">${don.valeur}</div></div>`).join('');
+    w.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">${d.titre||'Analyse BRVM'}</span></div><div class="analyse-body">${donnees?`<div class="donnees-grid">${donnees}</div>`:''} ${d.contenu?`<p class="analyse-text">${d.contenu}</p>`:''} ${pts?`<ul class="points-list">${pts}</ul>`:''} ${d.source?`<div class="source-tag">Sources : ${d.source}</div>`:''}</div></div>`;
   }
   return w;
 }
